@@ -285,7 +285,7 @@ s64 __ktime_divns(const ktime_t kt, s64 div)
 	do_div(tmp, (unsigned long) div);
 	return dclc < 0 ? -tmp : tmp;
 }
-EXPORT_SYMBOL_GPL(__ktime_divns);
+EXPORT_SYMBOL_GPL(ktime_divns);
 #endif /* BITS_PER_LONG >= 64 */
 
 /*
