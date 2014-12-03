@@ -267,7 +267,7 @@ lock_hrtimer_base(const struct hrtimer *timer, unsigned long *flags)
 /*
  * Divide a ktime value by a nanosecond value
  */
-s64 __ktime_divns(const ktime_t kt, s64 div)
+u64 __ktime_divns(const ktime_t kt, s64 div)
 {
 	int sft = 0;
 	s64 dclc;
@@ -285,7 +285,7 @@ s64 __ktime_divns(const ktime_t kt, s64 div)
 	do_div(tmp, (unsigned long) div);
 	return dclc < 0 ? -tmp : tmp;
 }
-EXPORT_SYMBOL_GPL(ktime_divns);
+EXPORT_SYMBOL_GPL(__ktime_divns);
 #endif /* BITS_PER_LONG >= 64 */
 
 /*
