@@ -492,15 +492,6 @@ struct root_domain {
 	bool overload;
 
 	/*
-	 * The bit corresponding to a CPU gets set here if such CPU has more
-	 * than one runnable -deadline task (as it is below for RT tasks).
-	 */
-	cpumask_var_t dlo_mask;
-	atomic_t dlo_count;
-	struct dl_bw dl_bw;
-	struct cpudl cpudl;
-
-	/*
 	 * The "RT overload" flag: it gets set if a CPU has more than
 	 * one runnable RT task.
 	 */
@@ -1242,12 +1233,9 @@ static inline void sched_update_avg_nr_running(int cpu, unsigned long nr_running
 
 static inline void add_nr_running(struct rq *rq, unsigned count)
 {
-	unsigned prev_nr = rq->nr_running;
+	rq->nr_running++;
 
-	rq->nr_running = prev_nr + count;
-	sched_update_avg_nr_running(cpu_of(rq), rq->nr_running);
-
-	if (prev_nr < 2 && rq->nr_running >= 2) {
+	if (rq->nr_running >= 2) {
 #ifdef CONFIG_SMP
 		if (!rq->rd->overload)
 			rq->rd->overload = true;
@@ -1255,18 +1243,12 @@ static inline void add_nr_running(struct rq *rq, unsigned count)
 
 #ifdef CONFIG_NO_HZ_FULL
 		if (tick_nohz_full_cpu(rq->cpu)) {
-			/*
-			 * Tick is needed if more than one task runs on a CPU.
-			 * Send the target an IPI to kick it out of nohz mode.
-			 *
-			 * We assume that IPI implies full memory barrier and the
-			 * new value of rq->nr_running is visible on reception
-			 * from the target.
-			 */
-			tick_nohz_full_kick_cpu(rq->cpu);
+			/* Order rq->nr_running write against the IPI */
+			smp_wmb();
+			smp_send_reschedule(rq->cpu);
 		}
 #endif
-	}
+       }
 }
 
 static inline void sub_nr_running(struct rq *rq, unsigned count)
