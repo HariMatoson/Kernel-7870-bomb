@@ -604,5 +604,11 @@ config RING_BUFFER_STARTUP_TEST
 
 endif # FTRACE
 
+config NO_LOG
+	bool "NO_LOG"
+	default y if FK_LOG
+	help
+		Disables all pr_ functions
+
 endif # TRACING_SUPPORT
 

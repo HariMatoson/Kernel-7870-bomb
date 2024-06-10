@@ -233,12 +233,28 @@ extern asmlinkage void dump_stack(void) __cold;
  * and other debug macros are compiled out unless either DEBUG is defined
  * or CONFIG_DYNAMIC_DEBUG is set.
  */
+
+#ifdef CONFIG_NO_LOG
+#define pr_emerg(fmt, ...) do {} while(0)
+#define pr_alert(fmt, ...) do {} while(0)
+#define pr_crit(fmt, ...) do {} while(0)
+#define pr_err(fmt, ...) do {} while(0)
+#define pr_warning(fmt, ...) do {} while(0)
+#define pr_warn pr_warning
+#define pr_notice(fmt, ...) do {} while(0)
+#define pr_info(fmt, ...) do {} while(0)
+#define pr_cont(fmt, ...) do {} while(0)
+#else
+
 #define pr_emerg(fmt, ...) \
 	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_alert(fmt, ...) \
 	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_crit(fmt, ...) \
 	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
+
+#endif
+
 #if defined(CONFIG_SEC_BAT_AUT) && !defined(CONFIG_SAMSUNG_PRODUCT_SHIP)
 #define BAT_AUTOMAION_TEST_PREFIX_ERR "<3>@BATAUTERR@"
 #define BAT_AUTOMAION_TEST_PREFIX_WARN "<3>@BATAUTWARN@"
@@ -294,6 +310,10 @@ extern asmlinkage void dump_stack(void) __cold;
 
 #include <linux/dynamic_debug.h>
 
+#ifdef CONFIG_NO_LOG
+#define pr_debug(fmt, ...) do {} while(0)
+#else
+
 /* If you are writing a driver, please use dev_dbg instead */
 #if defined(CONFIG_DYNAMIC_DEBUG)
 /* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
@@ -305,6 +325,8 @@ extern asmlinkage void dump_stack(void) __cold;
 #else
 #define pr_debug(fmt, ...) \
 	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+#endif
+
 #endif
 
 /*
