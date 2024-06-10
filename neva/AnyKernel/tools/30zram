@@ -5,12 +5,8 @@ while [[ $(getprop sys.boot_completed) != "1" ]]; do
 	sleep 1;
 done
 
-# Enable zswap
-echo "20" > /sys/module/zswap/parameters/max_pool_percent;
-echo "1" > /sys/module/zswap/parameters/enabled;
-
 # Set maximum swappiness
-echo 60 > /proc/sys/vm/swappiness;
+echo 100 > /proc/sys/vm/swappiness;
 
 # Set page-cluster to lowest to maximize performance
 echo 0 > /proc/sys/vm/page-cluster;
