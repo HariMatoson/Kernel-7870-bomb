@@ -649,9 +649,10 @@ KBUILD_CFLAGS	+= $(call cc-option,-fno-PIE)
 KBUILD_AFLAGS	+= $(call cc-option,-fno-PIE)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
+KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)  -mcpu=cortex-a53+crc+crypto -mtune=cortex-a53 -march=armv8-a+crc+crypto --param max-inline-insns-auto=4 -Wno-attribute-alias -Wno-packed-not-aligned -Wno-unused-const-variable -Wno-format-truncation -Wno-address-of-packed-member -Wno-stringop-overread -Wno-address -Wno-array-bounds -Wno-stringop-truncation -Wno-array-compare -Wno-sizeof-pointer-memaccess -Wno-missing-attributes -Wno-builtin-declaration-mismatch -Wno-memset-elt-size -Wno-stringop-overflow -Wno-duplicate-decl-specifier -Wno-misleading-indentation -Wno-attributes -Wno-switch-unreachable -Wno-int-in-bool-context -Wno-restrict -Wno-xor-used-as-pow -Wno-multistatement-macros -Wno-format-overflow -Wno-enum-int-mismatch -Wno-tautological-compare -Wno-sizeof-pointer-div
 else
-KBUILD_CFLAGS	+= -O2
+KBUILD_CFLAGS	+= -O3  -mcpu=cortex-a53+crc+crypto -mtune=cortex-a53 -march=armv8-a+crc+crypto --param max-inline-insns-auto=4 -Wno-attribute-alias -Wno-packed-not-aligned -Wno-unused-const-variable -Wno-format-truncation
+KBUILD_CFLAGS += -Wno-maybe-uninitialized -Wno-array-bounds -Wno-address-of-packed-member -Wno-stringop-overread -Wno-address -Wno-array-bounds -Wno-stringop-truncation -Wno-array-compare -Wno-sizeof-pointer-memaccess -Wno-missing-attributes -Wno-builtin-declaration-mismatch -Wno-memset-elt-size -Wno-stringop-overflow -Wno-duplicate-decl-specifier -Wno-misleading-indentation -Wno-attributes -Wno-switch-unreachable -Wno-int-in-bool-context -Wno-restrict -Wno-xor-used-as-pow -Wno-multistatement-macros -Wno-format-overflow -Wno-enum-int-mismatch -Wno-tautological-compare -Wno-sizeof-pointer-div
 endif
 
 KBUILD_CFLAGS 	+= $(call cc-disable-warning,maybe-uninitialized,) \
@@ -669,6 +670,20 @@ ifdef CONFIG_READABLE_ASM
 KBUILD_CFLAGS += $(call cc-option,-fno-reorder-blocks,) \
                  $(call cc-option,-fno-ipa-cp-clone,) \
                  $(call cc-option,-fno-partial-inlining)
+endif
+
+ifeq ($(cc-name),clang)
+KBUILD_CFLAGS	+= -mllvm -inline-threshold=1
+KBUILD_CFLAGS	+= -mllvm -inlinehint-threshold=1
+else ifeq ($(cc-name),gcc)
+KBUILD_CFLAGS	+= --param max-inline-insns-single=1
+KBUILD_CFLAGS	+= --param max-inline-insns-auto=1
+
+# We limit inlining to 5KB on the stack.
+KBUILD_CFLAGS	+= --param large-stack-frame=1288
+
+KBUILD_CFLAGS	+= --param inline-min-speedup=5
+KBUILD_CFLAGS	+= --param inline-unit-growth=60
 endif
 
 ifneq ($(CONFIG_FRAME_WARN),0)
