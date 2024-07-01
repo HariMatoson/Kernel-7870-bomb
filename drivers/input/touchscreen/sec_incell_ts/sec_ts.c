@@ -868,28 +868,11 @@ static irqreturn_t sec_ts_irq_thread(int irq, void *ptr)
 {
 	struct sec_ts_data *ts = (struct sec_ts_data *)ptr;
 
-#ifdef CONFIG_SECURE_TOUCH
-	if (secure_filter_interrupt(ts) == IRQ_HANDLED) {
-		wait_for_completion_interruptible_timeout(&ts->secure_interrupt,
-				msecs_to_jiffies(5 * MSEC_PER_SEC));
-
-		input_info(true, &ts->client->dev,
-				"%s: secure interrupt handled\n", __func__);
-
-		return IRQ_HANDLED;
-	}
-#endif
-
-	/* prevent CPU from entering deep sleep */
-	pm_qos_update_request(&ts->pm_qos_req, 100);
-
 	mutex_lock(&ts->eventlock);
 
 	sec_ts_read_event(ts);
 
 	mutex_unlock(&ts->eventlock);
-
-	pm_qos_update_request(&ts->pm_qos_req, PM_QOS_DEFAULT_VALUE);
 
 	return IRQ_HANDLED;
 }
@@ -1513,10 +1496,6 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 				"%s: TOUCH DEVICE ID : %02X, %02X, %02X, %02X, %02X\n", __func__,
 				deviceID[0], deviceID[1], deviceID[2], deviceID[3], deviceID[4]);
 
-
-	pm_qos_add_request(&ts->pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
-		PM_QOS_DEFAULT_VALUE);
-
 	ret = sec_ts_i2c_read(ts, SEC_TS_READ_FIRMWARE_INTEGRITY, &result, 1);
 	if (ret < 0) {
 		input_err(true, &ts->client->dev, "%s: failed to integrity check (%d)\n", __func__, ret);
@@ -1671,7 +1650,6 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 	return 0;
 
 err_irq:
-	pm_qos_remove_request(&ts->pm_qos_req);
 	if (ts->plat_data->support_dex) {
 		input_unregister_device(ts->input_dev_pad);
 		ts->input_dev_pad = NULL;
@@ -1964,15 +1942,6 @@ static int sec_ts_remove(struct i2c_client *client)
 	disable_irq_nosync(ts->client->irq);
 	free_irq(ts->client->irq, ts);
 	input_info(true, &ts->client->dev, "%s: irq disabled\n", __func__);
-	pm_qos_remove_request(&ts->pm_qos_req);
-
-#ifdef USE_POWER_RESET_WORK
-	cancel_delayed_work_sync(&ts->reset_work);
-	flush_delayed_work(&ts->reset_work);
-
-	input_info(true, &ts->client->dev, "%s: flush queue\n", __func__);
-
-#endif
 
 	sec_ts_fn_remove(ts);
 
