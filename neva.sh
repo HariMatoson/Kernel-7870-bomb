@@ -1,9 +1,9 @@
 #!/bin/bash
 
-NEVA_NAME="NevaCore 3.0"
+NEVA_NAME="NicaOS"
 NEVA_VARIANT="exynos7870"
-DEFCONF=exynos7870-j7xelte_defconfig
-KERN_VER=" - NevaCore 3.0 [j7xelte]"
+DEFCONF=exynos7870-j7y17lte_defconfig
+KERN_VER=" [j7y17lte]"
 
 export LOCALVERSION=$KERN_VER
 export ARCH=arm64

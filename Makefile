@@ -2,7 +2,7 @@ VERSION = 3
 PATCHLEVEL = 18
 SUBLEVEL = 150
 EXTRAVERSION =
-NAME = NevaCore
+NAME = NicaOS
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
